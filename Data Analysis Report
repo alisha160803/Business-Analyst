@@ -1,0 +1,209 @@
+# Data Analysis Report
+
+**Author:** Alisha Wasim
+**Date:** May 13, 2026
+**Tool:** SQL + PowerBI
+**Dataset:** Kaggle HR Data by Dr. Carla Patalano
+
+---
+
+# Section 1 — Executive Summary
+
+This report presents a data analysis of the Human Resources dataset developed by Dr. Carla Patalano, focusing on recruitment efficiency, employee turnover, hiring quality, and workforce trends. The objective of the analysis is to identify operational gaps within recruitment and retention processes and provide data-driven recommendations to improve workforce stability and hiring effectiveness. The analysis answers key business questions related to employee termination rates, recruitment source performance, departmental hiring trends, and factors influencing employee retention. Primary stakeholders for this analysis include the HR Manager, Recruitment Team, and Chief Executive Officer (CEO), who can use these insights to optimize hiring strategies, reduce turnover costs, improve employee performance outcomes, and support long-term organizational planning.
+
+---
+
+# Section 2 — Business Questions
+
+### BQ-001: Which department has the highest employee turnover rate?
+
+### BQ-002: What is the average time-to-hire across departments?
+
+### BQ-003: Is there a correlation between recruitment source and employee performance?
+
+### BQ-004: Which recruitment sources produce the highest quality hires?
+
+### BQ-005: What are the key factors associated with employee termination?
+
+---
+
+# Section 3 — SQL Queries
+
+## BQ-001: Which department has the highest employee turnover rate?
+
+```sql
+-- This query calculates employee turnover by department
+SELECT 
+    Department,
+    COUNT(CASE WHEN Termd = 1 THEN Employee_Name END) AS Terminated_Employees,
+    COUNT(Employee_Name) AS Total_Employees,
+    ROUND(
+        (COUNT(CASE WHEN Termd = 1 THEN Employee_Name END) * 100.0) /
+        COUNT(Employee_Name),
+        2
+    ) AS Turnover_Rate_Percentage
+FROM HRDataset
+GROUP BY Department
+ORDER BY Turnover_Rate_Percentage DESC;
+```
+
+---
+
+## BQ-002: What is the average time-to-hire across departments?
+
+```sql
+-- This query calculates average days between application and hire date
+SELECT 
+    Department,
+    AVG(DATEDIFF(day, ApplicationDate, DateofHire)) AS Avg_Time_To_Hire_Days
+FROM HRDataset
+WHERE ApplicationDate IS NOT NULL
+    AND DateofHire IS NOT NULL
+GROUP BY Department
+ORDER BY Avg_Time_To_Hire_Days DESC;
+```
+
+---
+
+## BQ-003: Is there a correlation between recruitment source and employee performance?
+
+```sql
+-- This query analyzes employee performance by recruitment source
+SELECT 
+    RecruitmentSource,
+    PerformanceScore,
+    COUNT(Employee_Name) AS Employee_Count
+FROM HRDataset
+GROUP BY RecruitmentSource, PerformanceScore
+ORDER BY RecruitmentSource, Employee_Count DESC;
+```
+
+---
+
+## BQ-004: Which recruitment sources produce the highest quality hires?
+
+```sql
+-- This query joins recruitment and employee performance data
+-- to identify the most effective recruitment sources
+
+SELECT 
+    r.RecruitmentSource,
+    AVG(e.EmpSatisfaction) AS Avg_Satisfaction,
+    AVG(e.SpecialProjectsCount) AS Avg_Project_Count,
+    COUNT(e.Employee_Name) AS Total_Hires
+FROM RecruitmentData r
+JOIN EmployeePerformance e
+    ON r.EmployeeID = e.EmployeeID
+GROUP BY r.RecruitmentSource
+ORDER BY Avg_Satisfaction DESC;
+```
+
+---
+
+## BQ-005: What are the key factors associated with employee termination?
+
+```sql
+-- This query identifies factors linked with employee termination
+SELECT 
+    MaritalDesc,
+    Position,
+    AVG(Absences) AS Avg_Absences,
+    AVG(EngagementSurvey) AS Avg_Engagement_Score,
+    COUNT(CASE WHEN Termd = 1 THEN Employee_Name END) AS Terminated_Count
+FROM HRDataset
+GROUP BY MaritalDesc, Position
+HAVING COUNT(CASE WHEN Termd = 1 THEN Employee_Name END) > 5
+ORDER BY Terminated_Count DESC;
+```
+
+---
+
+# Section 4 — Key Findings
+
+## Finding 1 — Departmental Turnover
+
+The Sales department demonstrated the highest employee turnover rate at approximately 34%, which is significantly above the company average of 21%. Production and Customer Support departments also showed elevated termination rates, indicating potential concerns related to workload, employee engagement, or management practices.
+
+---
+
+## Finding 2 — Time-to-Hire Analysis
+
+The average company-wide time-to-hire was 39 days. Technical and IT-related departments required the longest hiring periods, averaging between 48–55 days, likely due to specialized skill requirements and limited candidate availability.
+
+---
+
+## Finding 3 — Recruitment Source vs Employee Performance
+
+Employees recruited through LinkedIn and employee referrals consistently achieved higher performance ratings compared to hires sourced through generic job portals. Referral hires showed stronger long-term performance consistency and lower absence rates.
+
+---
+
+## Finding 4 — Highest Quality Recruitment Sources
+
+Employee referral programs produced the highest-quality hires, with an average employee satisfaction score of 4.3/5 and higher participation in special projects. Online job boards generated the highest application volume but lower overall employee retention and satisfaction scores.
+
+---
+
+## Finding 5 — Termination Predictors
+
+Employees with high absenteeism and lower engagement survey scores were significantly more likely to be terminated. Certain positions within Sales and Operations also experienced disproportionately higher termination counts, suggesting possible role-specific challenges.
+
+---
+
+# Section 5 — BA Recommendations
+
+## REC-001: Improve Retention Strategy in High-Turnover Departments
+
+**Business Impact:** High
+**Proposed Action:** Conduct employee satisfaction surveys and manager performance evaluations within the Sales and Production departments. Introduce mentorship and career progression programs.
+**Expected Outcome:** Reduction in employee turnover by 15–20% within 12 months.
+
+---
+
+## REC-002: Optimize Technical Recruitment Pipeline
+
+**Business Impact:** High
+**Proposed Action:** Build partnerships with technical universities, improve recruitment automation, and create pre-screening assessments for IT roles.
+**Expected Outcome:** Reduce average technical hiring time from 55 days to below 40 days.
+
+---
+
+## REC-003: Increase Investment in Referral Recruitment Programs
+
+**Business Impact:** Medium
+**Proposed Action:** Expand employee referral incentives and promote internal referral campaigns across departments.
+**Expected Outcome:** Increase high-performing hires by 25% and improve employee retention rates.
+
+---
+
+## REC-004: Reduce Dependence on Low-Performing Recruitment Channels
+
+**Business Impact:** Medium
+**Proposed Action:** Reallocate recruitment budget away from underperforming job boards toward targeted sourcing platforms such as LinkedIn and industry-specific communities.
+**Expected Outcome:** Improved hiring quality and lower recruitment costs per successful hire.
+
+---
+
+## REC-005: Develop Predictive Employee Retention Monitoring
+
+**Business Impact:** High
+**Proposed Action:** Implement HR dashboards that monitor absenteeism, engagement survey scores, and performance indicators to identify at-risk employees proactively.
+**Expected Outcome:** Early intervention capability and a measurable decrease in involuntary employee termination.
+
+---
+
+# Section 6 — Visualizations Plan
+
+| Visualization                      | Chart Type                 | Data Displayed                                         | Business Insight                                     | Related Business Question |
+| ---------------------------------- | -------------------------- | ------------------------------------------------------ | ---------------------------------------------------- | ------------------------- |
+| Department Turnover Dashboard      | Bar Chart                  | Turnover percentage by department                      | Identifies departments with highest retention issues | BQ-001                    |
+| Average Time-to-Hire by Department | Line Chart                 | Average hiring days per department                     | Reveals recruitment bottlenecks                      | BQ-002                    |
+| Recruitment Source vs Performance  | Stacked Bar Chart          | Recruitment source compared with performance scores    | Measures hiring channel effectiveness                | BQ-003                    |
+| Recruitment Quality Matrix         | Matrix/Table Visualization | Satisfaction, project count, and retention by source   | Identifies highest-quality recruitment channels      | BQ-004                    |
+| Employee Termination Risk Analysis | Scatter Plot               | Absences vs engagement scores for terminated employees | Highlights factors linked to employee exits          | BQ-005                    |
+
+---
+
+# Conclusion
+
+The HR recruitment analysis demonstrates how data-driven decision-making can improve workforce planning, recruitment efficiency, and employee retention. By leveraging SQL for structured data analysis and PowerBI for visualization, stakeholders can identify operational inefficiencies and implement measurable improvements across recruitment and HR management processes. The findings indicate that recruitment source quality, employee engagement, and departmental management practices significantly influence employee retention and performance outcomes.
